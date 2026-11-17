@@ -1,0 +1,929 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens: the reference template's palette (superconscious-app.webflow.io), measured from
+ * its computed styles. Dark page, locked. Token names are semantic, so components needn't change:
+ *   ink        page #0c0b0c → panel #0f0d10 → card #1a1a1a → raised #2c2c2c (the reference's surfaces)
+ *   fg         white text; fg-2 is white at 60% (the reference's secondary text), fg-3 a quieter grey
+ *   marine     indigo #4700d6 (deep end of the reference's gradients, logo tile end)
+ *   marine-2   the hero glow violet #8f69e0 (glows, gradients, logo tile start)
+ *   signal     the one UI accent: the reference's tag lavender #b9a3ff; signal-2 its card-edge lilac #ddb5fc
+ *   button     the primary button: white fill, ink label
+ * Orchid #edc5fc and ember #e73825 come from the reference's blur and card-edge gradients.
+ * Every color with alpha goes through the *-rgb channel variables in :root, so the palette lives here only.
+ * Radius system: buttons and the nav are 14px (reference 14.256px); panels and cards are 22px; chips 10px.
+ */
+@theme {
+  --color-ink: #0c0b0c;
+  --color-ink-2: #0f0d10;
+  --color-ink-3: #1a1a1a;
+  --color-ink-4: #2c2c2c;
+  --color-fg: #ffffff;
+  --color-fg-2: #9e9d9e;
+  --color-fg-3: #807f81;
+  --color-line: rgb(255 255 255 / 0.1);
+  --color-line-strong: rgb(255 255 255 / 0.2);
+  --color-glass: rgb(255 255 255 / 0.1);
+  --color-marine: #4700d6;
+  --color-marine-2: #8f69e0;
+  --color-signal: #b9a3ff;
+  --color-signal-2: #ddb5fc;
+  --color-button: #ffffff;
+
+  --font-sans: var(--font-wix), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-panel: 22px;
+  --radius-chip: 10px;
+  --radius-control: 14px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* z-index scale, used through these variables only */
+:root {
+  --z-base: 0;
+  --z-raised: 10;
+  --z-header: 40;
+  --z-skip: 50;
+  --z-grain: 60;
+  color-scheme: dark;
+
+  /* Channel values of the palette, for rgb(var(--x-rgb) / alpha). */
+  --accent-rgb: 185 163 255; /* signal: lavender #b9a3ff */
+  --violet-rgb: 143 105 224; /* marine-2: hero glow #8f69e0 */
+  --deep-rgb: 27 22 30; /* the reference's dark plum surface #1b161e */
+  --fg-rgb: 255 255 255;
+  --shadow-rgb: 0 0 0;
+  --nebula-pink-rgb: 237 197 252; /* orchid #edc5fc (reference blur) */
+  --nebula-teal-rgb: 71 0 214; /* indigo #4700d6 */
+
+  /* Icon hues for the standards cards, all from the reference's gradients, each ≥ 3:1 on the card */
+  --icon-lavender-rgb: 185 163 255; /* #b9a3ff */
+  --icon-violet-rgb: 143 105 224; /* #8f69e0 */
+  --icon-orchid-rgb: 237 197 252; /* #edc5fc */
+  --icon-ember-rgb: 231 56 37; /* #e73825 */
+
+  /* signal-2 as channels, for canvases and alpha uses */
+  --highlight-rgb: 221 181 252; /* #ddb5fc */
+
+  /* Footer light (sampled from the reference footer): core, violet body, blue side lobe */
+  --glow-core: #d7a9f4;
+  --glow-core-2: #c386f6;
+  --glow-core-edge-rgb: 141 76 230;
+  --glow-1: #6722e1;
+  --glow-2: #4b12c4;
+  --glow-3: #2a0a7f;
+  --glow-4: #0b0737;
+  --glow-side-1: #2120ac;
+  --glow-side-2: #1a1a82;
+  --glow-side-3: #141452;
+
+  /* Wordmark bevel, light to dark */
+  --bevel-1: #dcd8e8;
+  --bevel-2: #bab4cc;
+  --bevel-3: #958eab;
+  --bevel-4: #6e6787;
+  --bevel-5: #47405e;
+
+  /* Mode-aware surfaces (dark defaults; light mode overrides below) */
+  --star-rgb: 255 255 255; /* backdrop stars */
+  --star-alpha: 1;
+  --point-rgb: 255 255 255; /* hero sphere points */
+  --card-edge: var(--color-signal-2); /* GlowCard edge, start */
+  --card-edge-end: var(--color-ink-3); /* GlowCard edge, end */
+  --card-body: var(--color-ink-3); /* GlowCard body */
+}
+
+/*
+ * ───────────────────────── Themes ─────────────────────────
+ * The palette above is the "Nebula" theme (violet and lavender, measured from the reference).
+ * Other themes override the same variables; the background (ink) and text (fg) never change.
+ * The active theme is chosen in src/theme.ts (data-theme on <html>).
+ *
+ * "Ember": warm orange. Orange accent, amber and peach highlights, rust glows, a fire-coloured
+ * footer light and a warm bevel on the wordmark.
+ */
+:root[data-theme="ember"] {
+  --color-marine: #9a2b0c;
+  --color-marine-2: #e8622c;
+  --color-signal: #ff9a4d;
+  --color-signal-2: #ffc89a;
+
+  --accent-rgb: 255 154 77; /* #ff9a4d */
+  --violet-rgb: 232 98 44; /* #e8622c */
+  --deep-rgb: 30 20 16;
+  --nebula-pink-rgb: 255 200 154; /* peach #ffc89a */
+  --nebula-teal-rgb: 154 43 12; /* rust #9a2b0c */
+  --highlight-rgb: 255 200 154;
+
+  --icon-lavender-rgb: 255 176 64; /* amber #ffb040 */
+  --icon-violet-rgb: 255 122 61; /* orange #ff7a3d */
+  --icon-orchid-rgb: 255 200 154; /* peach #ffc89a */
+  --icon-ember-rgb: 231 56 37; /* red #e73825 */
+
+  --glow-core: #ffe0bf;
+  --glow-core-2: #ffb26b;
+  --glow-core-edge-rgb: 240 110 40;
+  --glow-1: #f0641e;
+  --glow-2: #c8400f;
+  --glow-3: #7a210a;
+  --glow-4: #2a0b05;
+  --glow-side-1: #b8261a;
+  --glow-side-2: #861b12;
+  --glow-side-3: #4a0f0a;
+
+  --bevel-1: #f1e1d6;
+  --bevel-2: #d9b9a3;
+  --bevel-3: #b48b70;
+  --bevel-4: #82593f;
+  --bevel-5: #4e3020;
+}
+
+/*
+ * ───────────────────────── Light mode ─────────────────────────
+ * Chosen by the visitor (sun / moon in the nav), stored in localStorage and applied before paint
+ * (data-mode on <html>). Works with either theme: the block below is light Nebula; the one after it
+ * re-points the accents for light Ember. Accents are darkened so text keeps WCAG AA on the light page.
+ * Cards blend in: translucent white bodies, a faint edge, no heavy glow; each group of cards sits
+ * on a full-width band a touch darker than the page (.card-panel).
+ */
+:root[data-mode="light"] {
+  color-scheme: light;
+
+  --color-ink: #f5f3fa;
+  --color-ink-2: #fbfaff;
+  --color-ink-3: #efecf6;
+  --color-ink-4: #e6e1f0;
+  --color-fg: #1b1626;
+  --color-fg-2: #4f4862;
+  --color-fg-3: #6c6580;
+  --color-line: rgb(27 22 38 / 0.09);
+  --color-line-strong: rgb(27 22 38 / 0.17);
+  --color-glass: rgb(255 255 255 / 0.62);
+  --color-button: #1b1626;
+
+  --fg-rgb: 27 22 38;
+  --shadow-rgb: 70 50 120;
+  --deep-rgb: 236 231 250;
+
+  /* Nebula accents, darkened for a light page */
+  --color-marine: #4700d6;
+  --color-marine-2: #8f69e0;
+  --color-signal: #6a4bd8;
+  --color-signal-2: #b9a3ff;
+  --accent-rgb: 106 75 216;
+  --violet-rgb: 143 105 224;
+  --highlight-rgb: 143 105 224;
+  --nebula-pink-rgb: 185 163 255;
+  --nebula-teal-rgb: 71 0 214;
+  --icon-lavender-rgb: 106 75 216;
+  --icon-violet-rgb: 124 82 222;
+  --icon-orchid-rgb: 168 85 247;
+  --icon-ember-rgb: 200 40 30;
+
+  /* Footer light: the same nebula arc as dark mode, in mid violets (lighter than dark mode) */
+  --glow-core: #d9c6ff;
+  --glow-core-2: #b392ff;
+  --glow-core-edge-rgb: 138 96 238;
+  --glow-1: #9670ee;
+  --glow-2: #a988f4;
+  --glow-3: #c8b3f8;
+  --glow-4: #e6ddf9;
+  --glow-side-1: #9aa4f0;
+  --glow-side-2: #b9c1f5;
+  --glow-side-3: #dde0fb;
+
+  --bevel-1: #8f69e0;
+  --bevel-2: #7a55d4;
+  --bevel-3: #6543c2;
+  --bevel-4: #5034a8;
+  --bevel-5: #3d2888;
+  --bevel-6: #2b1d66;
+
+  --star-rgb: 106 75 216;
+  --star-alpha: 0.4;
+  --point-rgb: 40 30 80;
+  --card-edge: rgb(var(--accent-rgb) / 0.3);
+  --card-edge-end: rgb(255 255 255 / 0.6);
+  --card-body: rgb(255 255 255 / 0.74); /* no backdrop blur (costly over animated layers), so a touch more opaque */
+  --band-rgb: 232 227 244; /* card bands: a touch darker than the page */
+}
+
+:root[data-mode="light"][data-theme="ember"] {
+  --color-marine: #9a2b0c;
+  --color-marine-2: #e8622c;
+  --color-signal: #c2410c;
+  --color-signal-2: #ffb57d;
+  --accent-rgb: 194 65 12;
+  --violet-rgb: 232 98 44;
+  --highlight-rgb: 232 98 44;
+  --nebula-pink-rgb: 255 181 125;
+  --nebula-teal-rgb: 154 43 12;
+  --icon-lavender-rgb: 176 104 0;
+  --icon-violet-rgb: 194 65 12;
+  --icon-orchid-rgb: 214 110 60;
+  --icon-ember-rgb: 200 40 30;
+
+  --glow-core: #ffd3ad;
+  --glow-core-2: #ffa766;
+  --glow-core-edge-rgb: 245 120 50;
+  --glow-1: #f68845;
+  --glow-2: #faa46b;
+  --glow-3: #fcc7a3;
+  --glow-4: #f9e6d9;
+  --glow-side-1: #f59a86;
+  --glow-side-2: #f9bcae;
+  --glow-side-3: #fcdcd4;
+
+  --bevel-1: #e8622c;
+  --bevel-2: #d45220;
+  --bevel-3: #b94418;
+  --bevel-4: #9a3712;
+  --bevel-5: #7a2b0e;
+  --bevel-6: #5a200a;
+
+  --star-rgb: 194 65 12;
+  --band-rgb: 244 232 222;
+}
+
+html {
+  background: var(--color-ink);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* Nothing may widen the page sideways: on phones a wider page shifts fixed elements off screen */
+  overflow-x: clip;
+}
+
+/* Split headings start their letters off to the right (from-right-blur); clip them to the heading's
+   own box so letters still waiting to slide in never stick out past the page edge */
+[data-split] {
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* No body background: the fixed star particles (z-index -1) must show through. html carries the color. */
+body {
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-signal-2);
+  color: #0c0b0c;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* The reference's glass (nav, hero card): white at 10% over a 12.96px blur, no edge. */
+.glass {
+  background: var(--color-glass);
+  backdrop-filter: blur(12.96px);
+  -webkit-backdrop-filter: blur(12.96px);
+}
+
+/* Light mode: the glass needs a hairline and a soft shadow to read on a light page */
+:root[data-mode="light"] .glass {
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--fg-rgb) / 0.07),
+    0 10px 30px -14px rgb(var(--shadow-rgb) / 0.3);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--color-ink-3);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/*
+ * Hero light, after the reference (.hero-top-blur: a #8f69e0 block 70vw × 20vw at -13vw, blurred
+ * 11vw), made larger and lower (76vw × 26vw at -11vw) so the shade from the top reaches further.
+ */
+.hero-top-blur {
+  position: absolute;
+  left: 50%;
+  top: -11vw;
+  width: 76vw;
+  height: 26vw;
+  min-height: 200px;
+  translate: -50% 0;
+  background: var(--color-marine-2);
+  filter: blur(max(11vw, 70px));
+}
+
+/*
+ * Footer light, rebuilt in CSS from colors sampled on the reference footer's background image
+ * (shown there at 140% width from the left): a violet cone with a lilac core rising from the bottom
+ * edge, and a dimmer indigo-blue lobe to its right. The box keeps the image's 1600:503 shape; on
+ * narrow screens it stays at least 1000px wide and shifts left so the core stays near 60% across.
+ */
+.footer-glow {
+  --w: max(140vw, 1000px);
+  position: absolute;
+  z-index: -1;
+  bottom: calc(var(--w) * -0.026);
+  left: min(0px, calc(60vw - 0.44 * var(--w)));
+  width: var(--w);
+  aspect-ratio: 1600 / 503;
+  pointer-events: none;
+  background:
+    radial-gradient(11% 36% at 44% 100%, var(--glow-core) 0%, var(--glow-core-2) 30%, rgb(var(--glow-core-edge-rgb) / 0.7) 60%, rgb(var(--glow-core-edge-rgb) / 0) 100%),
+    radial-gradient(26% 90% at 36% 100%, var(--glow-1) 0%, var(--glow-2) 35%, var(--glow-3) 65%, var(--glow-4) 85%, rgb(12 12 12 / 0) 100%),
+    radial-gradient(10% 76% at 80% 100%, var(--glow-side-1) 0%, var(--glow-side-2) 45%, var(--glow-side-3) 75%, rgb(12 12 12 / 0) 100%);
+}
+
+/*
+ * The footer light inside a panel ("Start a conversation"): the same colors, but the violet arc and
+ * its lilac core share one centre line in the middle of the panel, and the blue side lobe is left out.
+ */
+.footer-glow--panel {
+  --w: max(140%, 1000px);
+  bottom: -24px;
+  left: calc(50% - 0.5 * var(--w));
+  background:
+    radial-gradient(11% 36% at 50% 100%, var(--glow-core) 0%, var(--glow-core-2) 30%, rgb(var(--glow-core-edge-rgb) / 0.7) 60%, rgb(var(--glow-core-edge-rgb) / 0) 100%),
+    radial-gradient(26% 90% at 50% 100%, var(--glow-1) 0%, var(--glow-2) 35%, var(--glow-3) 65%, var(--glow-4) 85%, rgb(12 12 12 / 0) 100%);
+}
+
+/*
+ * Depth for the big "phronem" wordmarks (hero and footer): a short bevelled edge stepping from
+ * light lilac-grey to dark violet under each letter, then a soft drop shadow and a faint violet
+ * glow. In em, so it scales with the type. Inherited by the SplitText characters.
+ */
+.wordmark-depth {
+  text-shadow:
+    0 0.006em 0 var(--bevel-1),
+    0 0.012em 0 var(--bevel-2),
+    0 0.018em 0 var(--bevel-3),
+    0 0.024em 0 var(--bevel-4),
+    0 0.03em 0 var(--bevel-5),
+    0 0.04em 0.02em rgb(0 0 0 / 0.55),
+    0 0.08em 0.12em rgb(0 0 0 / 0.5),
+    0 0.12em 0.35em rgb(var(--violet-rgb) / 0.35);
+}
+
+/* Stats strip graphics (StatGraphics.tsx): tiles and dots light in turn; rings ripple outward */
+.st-blink {
+  opacity: 0.22;
+  animation: st-blink 1.8s ease-in-out infinite;
+}
+@keyframes st-blink {
+  0%, 100% { opacity: 0.22; }
+  30% { opacity: 1; }
+  60% { opacity: 0.22; }
+}
+.st-ripple {
+  opacity: 0.25;
+  animation: st-ripple 1.8s ease-in-out infinite;
+}
+@keyframes st-ripple {
+  0%, 100% { opacity: 0.2; stroke-width: 1.2; }
+  35% { opacity: 1; stroke-width: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-blink,
+  .st-ripple {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* Light mode: a softer hero light, and a deeper extruded wordmark so it keeps its weight on the light page */
+:root[data-mode="light"] .hero-top-blur {
+  opacity: 0.55;
+}
+:root[data-mode="light"] .wordmark-depth {
+  text-shadow:
+    0 0.005em 0 var(--bevel-1),
+    0 0.01em 0 var(--bevel-2),
+    0 0.015em 0 var(--bevel-3),
+    0 0.02em 0 var(--bevel-4),
+    0 0.025em 0 var(--bevel-5),
+    0 0.03em 0 var(--bevel-6),
+    0 0.045em 0.02em rgb(var(--shadow-rgb) / 0.45),
+    0 0.09em 0.12em rgb(var(--shadow-rgb) / 0.3),
+    0 0.18em 0.4em rgb(var(--violet-rgb) / 0.35);
+}
+
+/*
+ * Card band: a full-width tinted strip behind a group of cards (the services and standards
+ * slideshows, client cards, service-page cards, compliance cards), edge to edge with a hairline
+ * top and bottom. In light mode it is a touch darker than the page (--band-rgb); in dark mode it
+ * is barely there. Placed outside the page container, with a container inside for the cards.
+ */
+.card-panel {
+  border-block: 1px solid var(--color-line);
+  background: rgb(var(--fg-rgb) / 0.02);
+}
+:root[data-mode="light"] .card-panel {
+  border-color: rgb(var(--fg-rgb) / 0.08);
+  background: linear-gradient(180deg, rgb(var(--band-rgb) / 0.85), rgb(var(--band-rgb) / 0.6));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(255 255 255 / 0.5);
+}
+/* "Color Bends" backdrop layer (ColorBendsBackdrop.tsx): under the stars / net canvas, held back
+   so text stays readable; a little softer on the light page. */
+.color-bends-layer {
+  z-index: -2;
+  opacity: 0.5;
+}
+:root[data-mode="light"] .color-bends-layer {
+  opacity: 0.35;
+}
+
+/* Film grain on a fixed, non-interactive layer only. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ───────────────────────── Motion (see docs/motion.md) ───────────────────────── */
+
+:root {
+  --ease-view: cubic-bezier(0.19, 1, 0.22, 1); /* the reference's view-item curve */
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Split text waits hidden until SplitText has run (reference: visibility set after split). */
+.js-motion [data-split]:not([data-split-done]) {
+  visibility: hidden;
+}
+
+/* view-item start states (reference #6, #7) */
+.js-motion [data-view] {
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    transform 2s var(--ease-view),
+    opacity 0.2s;
+}
+.js-motion [data-view="from-down"] {
+  transform: scale(0.6) translateY(50%);
+}
+.js-motion [data-view="rise"] {
+  transform: translateY(2.5rem);
+  transition:
+    transform 1.4s var(--ease-view),
+    opacity 0.6s;
+}
+.js-motion [data-view].view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Word tiles inside the manifesto headline (reference #9: about-tag grows from 0×0). */
+.word-tile {
+  width: 1.62em;
+  height: 1.08em;
+  margin: 0 0.24em;
+  border-radius: 0.3em;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--color-ink-3), var(--color-ink-3)) padding-box,
+    var(--tile-edge, linear-gradient(135deg, var(--color-signal), var(--color-marine-2) 60%, transparent)) border-box;
+  overflow: hidden;
+}
+.js-motion [data-view="tile"] {
+  width: 0;
+  height: 0;
+  margin: 0 0.06em;
+  opacity: 0;
+  transform: none;
+  transition:
+    margin 2s var(--ease-view),
+    height 2s var(--ease-view),
+    width 2s var(--ease-view),
+    opacity 0.2s;
+}
+.js-motion [data-view="tile"].view {
+  width: 1.62em;
+  height: 1.08em;
+  margin: 0 0.24em;
+  opacity: 1;
+}
+
+/* Glyph loops */
+@keyframes rotate360 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes glyph-breathe {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes glyph-converge {
+  0%,
+  15% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(var(--gx), var(--gy));
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+}
+.glyph-spin {
+  animation: rotate360 9s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.glyph-breathe {
+  animation: glyph-breathe 2.4s ease-in-out infinite;
+  transform-origin: 0 0;
+}
+.glyph-converge {
+  animation: glyph-converge 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.spin-slow {
+  animation: rotate360 14s linear infinite;
+}
+
+/* Preloader (reference #1), CSS only */
+@keyframes emblem-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes emblem-pop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes preloader-word {
+  from {
+    opacity: 0;
+    transform: translateY(40%);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes preloader-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.emblem-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: emblem-draw 1.1s var(--ease-view) forwards;
+}
+.emblem-pop {
+  transform: scale(0);
+  animation: emblem-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.preloader {
+  animation: preloader-out 0.7s ease 2.2s forwards;
+}
+.preloader-word {
+  opacity: 0;
+  animation: preloader-word 1s var(--ease-view) 1s forwards;
+}
+.no-preloader .preloader {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph-spin,
+  .glyph-breathe,
+  .glyph-converge,
+  .spin-slow {
+    animation: none;
+  }
+  .glyph-converge {
+    opacity: 1;
+  }
+}
+
+/* ───────── "From question to record" widgets (the reference's looping Lottie widgets) ───────── */
+
+/* Ring: the arc draws part-way round (a moderate confidence, not a full one), holds, fades, repeats.
+   The word arrives as the arc settles. */
+.hw-ring-arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0.42;
+  animation: hw-ring 4.2s ease-in-out infinite;
+}
+@keyframes hw-ring {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  60% { stroke-dashoffset: 0.42; opacity: 1; }
+  92% { stroke-dashoffset: 0.42; opacity: 1; }
+  100% { stroke-dashoffset: 0.42; opacity: 0; }
+}
+.hw-word {
+  animation: hw-word 4.2s ease-in-out infinite;
+}
+@keyframes hw-word {
+  0%, 30% { opacity: 0; filter: blur(4px); transform: translateY(4px); }
+  60%, 92% { opacity: 1; filter: blur(0); transform: none; }
+  100% { opacity: 0; filter: blur(4px); }
+}
+
+/* Chart: the line draws left to right with a glowing dot riding its tip */
+.hw-chart-line {
+  stroke-dasharray: 1;
+  animation: hw-line 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes hw-line {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  70% { stroke-dashoffset: 0; opacity: 1; }
+  92% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+.hw-chart-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: var(--color-signal-2);
+  box-shadow:
+    0 0 0 4px rgb(var(--accent-rgb) / 0.25),
+    0 0 18px 4px rgb(var(--accent-rgb) / 0.55);
+  offset-rotate: 0deg;
+  offset-anchor: center;
+  animation: hw-dot 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes hw-dot {
+  0% { offset-distance: 0%; opacity: 1; }
+  70% { offset-distance: 100%; opacity: 1; }
+  92% { offset-distance: 100%; opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* Pills float gently; the accent glyph turns; profile checks light in turn */
+.hw-float {
+  animation: hw-float 4s ease-in-out infinite;
+}
+@keyframes hw-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.hw-turn {
+  animation: rotate360 10s linear infinite;
+}
+.hw-check {
+  animation: hw-check 2.7s ease-in-out infinite;
+}
+@keyframes hw-check {
+  0%, 20% { background: rgb(var(--fg-rgb) / 0.06); color: var(--color-fg-2); }
+  35%, 70% { background: rgb(var(--accent-rgb) / 0.22); color: var(--color-fg); }
+  100% { background: rgb(var(--fg-rgb) / 0.06); color: var(--color-fg-2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-word,
+  .hw-ring-arc,
+  .hw-chart-line,
+  .hw-chart-dot,
+  .hw-float,
+  .hw-turn,
+  .hw-check {
+    animation: none;
+  }
+  .hw-ring-arc {
+    stroke-dashoffset: 0.42;
+  }
+  .hw-chart-line {
+    stroke-dashoffset: 0;
+  }
+  .hw-chart-dot {
+    offset-distance: 100%;
+  }
+}
+
+/* ───────── Feature showcase widgets (the reference's looping "what is" Lottie widgets) ───────── */
+
+@property --fs-n {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 3;
+}
+.fs-count {
+  --fs-n: 9;
+  counter-reset: fs var(--fs-n);
+  animation: fs-count 4.8s ease-in-out infinite;
+}
+.fs-count::before {
+  content: counter(fs);
+}
+@keyframes fs-count {
+  0%, 10% { --fs-n: 3; }
+  60%, 100% { --fs-n: 9; }
+}
+
+/* Rings breathe in turn, narrowing toward the record */
+.fs-ring {
+  animation: fs-ring 2.6s ease-in-out infinite;
+}
+@keyframes fs-ring {
+  0%, 100% { stroke-opacity: 0.25; }
+  45% { stroke-opacity: 0.85; }
+}
+
+/* Nodes travel round the stadium track */
+.fs-orbit {
+  offset-rotate: 0deg;
+  offset-anchor: center;
+  animation: fs-orbit 14s linear infinite;
+}
+@keyframes fs-orbit {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+
+/* Lines draw, points appear along them, everything resets */
+.fs-draw {
+  stroke-dasharray: 1;
+  animation: fs-draw 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes fs-draw {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  55% { stroke-dashoffset: 0; opacity: 1; }
+  90% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+.fs-pop {
+  animation: fs-pop 4.8s ease-out infinite;
+}
+@keyframes fs-pop {
+  0%, 6% { opacity: 0; }
+  14%, 86% { opacity: 1; }
+  96%, 100% { opacity: 0; }
+}
+
+.fs-float {
+  animation: hw-float 4s ease-in-out infinite;
+}
+.fs-glow {
+  animation: fs-glow 2.4s ease-in-out infinite;
+}
+@keyframes fs-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0.5); }
+  50% { box-shadow: 0 0 0 8px rgb(var(--accent-rgb) / 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-count,
+  .fs-ring,
+  .fs-orbit,
+  .fs-draw,
+  .fs-pop,
+  .fs-float,
+  .fs-glow {
+    animation: none;
+  }
+  .fs-draw {
+    stroke-dashoffset: 0;
+  }
+  .fs-orbit:nth-of-type(2) {
+    offset-distance: 33%;
+  }
+  .fs-orbit:nth-of-type(3) {
+    offset-distance: 66%;
+  }
+}
+
+/* ───────── Cards that stay still on hover: a diagonal sheen sweeps across (client and standards cards) ───────── */
+.card-sheen {
+  position: absolute;
+  inset: -40%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.08) 44%,
+    rgb(255 255 255 / 0.32) 50%,
+    rgb(var(--violet-rgb) / 0.12) 56%,
+    transparent 62%
+  );
+  transform: translate(-60%, -60%);
+  transition: transform 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+}
+.group:hover .card-sheen,
+.group:focus-within .card-sheen {
+  transform: translate(60%, 60%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-sheen {
+    display: none;
+  }
+}
+
+/* ───────── "Join the Phronem expert panel" (ExpertsBand + PanelConstellation) ───────── */
+
+/* A short pulse of light travels along each line, from the role chip into the core */
+.xp-flow {
+  stroke-dasharray: 0.14 0.86;
+  animation: xp-flow 3.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes xp-flow {
+  from { stroke-dashoffset: 0.14; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  to { stroke-dashoffset: -1; opacity: 0; }
+}
+
+.xp-twinkle {
+  animation: xp-twinkle 3s ease-in-out infinite;
+}
+@keyframes xp-twinkle {
+  0%, 100% { opacity: 0.25; scale: 0.7; }
+  50% { opacity: 1; scale: 1; }
+}
+
+/* The core sends out a slow ring, like a signal */
+.xp-pulse {
+  border: 1px solid rgb(var(--accent-rgb) / 0.6);
+  animation: xp-pulse 3s ease-out infinite;
+}
+@keyframes xp-pulse {
+  from { transform: scale(1); opacity: 0.8; }
+  to { transform: scale(2.1); opacity: 0; }
+}
+
+/* A fine scatter of stars inside the panel itself */
+.xp-stars::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgb(var(--fg-rgb) / 0.9), transparent 60%),
+    radial-gradient(1px 1px at 38% 72%, rgb(var(--fg-rgb) / 0.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 64% 12%, rgb(var(--accent-rgb) / 0.9), transparent 60%),
+    radial-gradient(1px 1px at 86% 64%, rgb(var(--fg-rgb) / 0.8), transparent 60%),
+    radial-gradient(1px 1px at 52% 44%, rgb(var(--fg-rgb) / 0.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 24% 88%, rgb(var(--accent-rgb) / 0.8), transparent 60%);
+  background-size: 260px 220px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-flow,
+  .xp-twinkle,
+  .xp-pulse {
+    animation: none;
+  }
+  .xp-flow {
+    stroke-dasharray: none;
+    opacity: 0.5;
+  }
+  .xp-pulse {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,646 @@
+/*
+ * Operator desk (/operators). Reuses the site's Nebula tokens from globals.css (ink, fg, line,
+ * signal and the *-rgb channels), so the theme word in src/theme.ts and the light / dark switch
+ * apply here too. Adds only what a working tool needs: state colors, form controls and the
+ * sign-off stamps. Radius rule as on the site: controls 14px, panels 22px, chips 10px.
+ */
+
+/* In the components layer, so Tailwind utilities on the same element (pl-10, px-3) still win. */
+@layer components {
+
+.desk {
+  /* State colors. Used only for real state (pass, open, failed), never as decoration. */
+  --ok: #74d9ad;
+  --ok-bg: rgb(116 217 173 / 0.12);
+  --hold: #f2c46d;
+  --hold-bg: rgb(242 196 109 / 0.12);
+  --stop: #ff9488;
+  --stop-bg: rgb(255 148 136 / 0.12);
+  --stop-line: rgb(255 148 136 / 0.5);
+  --quiet-bg: rgb(var(--fg-rgb) / 0.07);
+  --field: rgb(var(--fg-rgb) / 0.04);
+  --field-hover: rgb(var(--fg-rgb) / 0.07);
+  /* Panels sit a step above the page, with a faint violet cast, so they read as surfaces */
+  --surface: rgb(23 20 29 / 0.9);
+
+  /*
+   * Pipeline colors for charts and stat tiles (qualified, waiting, in assessment, not eligible),
+   * in that order, validated with the dataviz palette checks against the panel surface (dark
+   * #17141d, light #ffffff). Always shown with a label; never color alone.
+   */
+  --st-ok-rgb: 39 168 119; /* #27a877 */
+  --st-wait-rgb: 196 134 28; /* #c4861c */
+  --st-assess-rgb: 155 123 240; /* #9b7bf0 */
+  --st-out-rgb: 226 90 78; /* #e25a4e */
+}
+
+:root[data-mode="light"] .desk {
+  --ok: #12704a;
+  --ok-bg: rgb(18 112 74 / 0.1);
+  --hold: #8a5300;
+  --hold-bg: rgb(176 112 0 / 0.12);
+  --stop: #b3261e;
+  --stop-bg: rgb(179 38 30 / 0.09);
+  --stop-line: rgb(179 38 30 / 0.45);
+  --field: rgb(255 255 255 / 0.8);
+  --field-hover: rgb(255 255 255 / 1);
+  --surface: rgb(255 255 255 / 0.84);
+
+  --st-ok-rgb: 21 122 82; /* #157a52 */
+  --st-wait-rgb: 163 98 0; /* #a36200 */
+  --st-assess-rgb: 106 75 216; /* #6a4bd8 */
+  --st-out-rgb: 198 58 47; /* #c63a2f */
+}
+
+/* Panels: opaque enough to read over the star field, with the site's faint lavender edge */
+/* The top bar: near-opaque page color, so scrolled content never reads through it */
+.desk-bar {
+  background: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.desk-panel {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  /* a hairline of light along the top edge, as on a raised card */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.045);
+}
+:root[data-mode="light"] .desk-panel {
+  border-color: rgb(var(--fg-rgb) / 0.08);
+  box-shadow: 0 18px 40px -28px rgb(var(--shadow-rgb) / 0.35);
+}
+.desk-panel--edge {
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(126deg, rgb(var(--highlight-rgb) / 0.55), var(--color-line) 45%) border-box;
+  border-color: transparent;
+}
+
+/* Form controls */
+.desk-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-control);
+  background: var(--field);
+  color: var(--color-fg);
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.45;
+  padding: 9px 12px;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.desk-input:hover {
+  background: var(--field-hover);
+}
+.desk-input:focus {
+  outline: none;
+  border-color: var(--color-signal);
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.22);
+}
+.desk-input::placeholder {
+  color: var(--color-fg-3);
+}
+.desk-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+textarea.desk-input {
+  resize: vertical;
+  min-height: 76px;
+}
+select.desk-input {
+  appearance: none;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg-2) 50%),
+    linear-gradient(135deg, var(--color-fg-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 52%,
+    calc(100% - 12px) 52%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+select.desk-input option {
+  background: var(--color-ink-2);
+  color: var(--color-fg);
+}
+.desk-input--score {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.desk-check {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1.5px solid var(--color-line-strong);
+  border-radius: 6px;
+  background: var(--field);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.desk-check::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  margin-top: -2px;
+  border-left: 2px solid var(--color-ink);
+  border-bottom: 2px solid var(--color-ink);
+  transform: rotate(-45deg) scale(0);
+  transition: transform 160ms var(--ease-out-expo);
+}
+.desk-check:checked {
+  background: var(--color-signal);
+  border-color: var(--color-signal);
+}
+.desk-check:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+:root[data-mode="light"] .desk-check:checked::after {
+  border-color: #fff;
+}
+.desk-check:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Buttons. Primary is the site's white button; quiet ones sit on the glass. */
+.desk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  border-radius: var(--radius-control);
+  padding: 9px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms var(--ease-out-expo);
+}
+.desk-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.desk-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.desk-btn--primary {
+  background: var(--color-button);
+  color: var(--color-ink);
+}
+.desk-btn--primary:hover:not(:disabled) {
+  background: rgb(var(--fg-rgb) / 0.86);
+}
+.desk-btn--quiet {
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-glass);
+  color: var(--color-fg);
+}
+.desk-btn--quiet:hover:not(:disabled) {
+  border-color: var(--color-fg-3);
+}
+.desk-btn--danger {
+  border: 1px solid var(--stop-line);
+  color: var(--stop);
+  background: transparent;
+}
+.desk-btn--danger:hover:not(:disabled) {
+  background: var(--stop-bg);
+}
+.desk-link {
+  color: var(--color-fg-2);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-strong);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.desk-link:hover {
+  color: var(--color-fg);
+}
+
+/* State chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-chip);
+  padding: 3px 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.chip--good {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+.chip--warn {
+  color: var(--hold);
+  background: var(--hold-bg);
+}
+.chip--bad {
+  color: var(--stop);
+  background: var(--stop-bg);
+}
+.chip--mute {
+  color: var(--color-fg-2);
+  background: var(--quiet-bg);
+}
+.tone-good {
+  color: var(--ok);
+}
+.tone-warn {
+  color: var(--hold);
+}
+.tone-bad {
+  color: var(--stop);
+}
+.tone-mute {
+  color: var(--color-fg-2);
+}
+
+/*
+ * Sign-off stamps: the file's four decisions, inked like a rubber stamp once made. Open stages are
+ * a dashed outline; an approval is a double rule in lavender, turned a degree and a half; a
+ * rejection the same in red. The operator's name and date are part of the stamp.
+ */
+.stamp {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  border: 1.5px dashed var(--color-line-strong);
+  border-radius: 12px;
+  padding: 10px 12px 11px;
+  color: var(--color-fg-3);
+}
+.stamp__stage {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-fg-2);
+}
+.stamp__word {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.stamp__who {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stamp--approve,
+.stamp--reject {
+  border: 3px double currentColor;
+  rotate: -1.5deg;
+}
+.stamp--approve {
+  color: var(--color-signal);
+  background: rgb(var(--accent-rgb) / 0.06);
+}
+.stamp--reject {
+  color: var(--stop);
+  background: var(--stop-bg);
+}
+.stamp--approve .stamp__stage,
+.stamp--reject .stamp__stage {
+  color: currentColor;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stamp--inked {
+    animation: stamp-in 420ms var(--ease-out-expo) both;
+  }
+}
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    scale: 1.18;
+    rotate: -6deg;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    rotate: -1.5deg;
+  }
+}
+
+/* The score figure */
+.score-figure {
+  font-size: clamp(44px, 5vw, 60px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pane swap: a short fade so the change of section registers */
+@media (prefers-reduced-motion: no-preference) {
+  .pane-in {
+    animation: pane-in 240ms var(--ease-out-expo) both;
+  }
+}
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Thin progress line for the pilot funnel: no heavy filled track */
+.meter {
+  position: relative;
+  height: 4px;
+  border-radius: 4px;
+  background: rgb(var(--fg-rgb) / 0.06);
+  overflow: hidden;
+}
+.meter > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--color-marine-2), var(--color-signal));
+}
+
+/* Tables */
+.desk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.desk-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-fg-3);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-line);
+}
+.desk-table td {
+  padding: 14px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-line);
+}
+.desk-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.desk-table tbody tr {
+  transition: background-color 140ms ease;
+}
+.desk-table tbody tr:hover {
+  background: rgb(var(--fg-rgb) / 0.025);
+}
+
+/* Sign-in: the site's footer nebula arc rises behind the page */
+.signin-arc {
+  --w: max(150vw, 1100px);
+  position: absolute;
+  left: calc(50% - 0.5 * var(--w));
+  bottom: calc(var(--w) * -0.06);
+  width: var(--w);
+  aspect-ratio: 1600 / 503;
+  pointer-events: none;
+  background:
+    radial-gradient(11% 36% at 50% 100%, var(--glow-core) 0%, var(--glow-core-2) 30%, rgb(var(--glow-core-edge-rgb) / 0.7) 60%, rgb(var(--glow-core-edge-rgb) / 0) 100%),
+    radial-gradient(26% 90% at 50% 100%, var(--glow-1) 0%, var(--glow-2) 35%, var(--glow-3) 65%, var(--glow-4) 85%, rgb(12 12 12 / 0) 100%);
+}
+:root[data-mode="light"] .signin-arc {
+  opacity: 0.75;
+}
+
+/* ───────── Shell: sidebar, nav items, icon buttons (after the reference dashboard) ───────── */
+
+.desk-sidebar {
+  background: color-mix(in srgb, var(--color-ink-2) 92%, transparent);
+  transition: width 220ms var(--ease-out-expo);
+}
+.desk-drawer {
+  background: var(--color-ink-2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .desk-drawer {
+    animation: drawer-in 260ms var(--ease-out-expo) both;
+  }
+}
+@keyframes drawer-in {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+.desk-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  border-radius: var(--radius-control);
+  padding: 10px 14px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-fg-2);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+.desk-nav-item:hover {
+  color: var(--color-fg);
+  background: rgb(var(--fg-rgb) / 0.05);
+}
+.desk-nav-item--active {
+  color: var(--color-fg);
+  background: rgb(var(--fg-rgb) / 0.08);
+}
+/* A lavender bar on the active item's left edge */
+.desk-nav-item--active::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-signal);
+}
+.desk-nav-item--active svg {
+  color: var(--color-signal);
+}
+
+.desk-icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 12px;
+  background: var(--color-glass);
+  color: var(--color-fg);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms var(--ease-out-expo);
+}
+.desk-icon-btn:hover {
+  border-color: var(--color-fg-3);
+}
+.desk-icon-btn:active {
+  transform: scale(0.96);
+}
+
+/* ───────── Dashboard pieces ───────── */
+
+/* Round-cornered icon tile used on stat cards and list rows */
+/* Tinted with the tile's own hue: set --hue to an *-rgb channel triple (defaults to the accent) */
+.icon-tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  border: 1px solid rgb(var(--hue, var(--accent-rgb)) / 0.32);
+  background: linear-gradient(150deg, rgb(var(--hue, var(--accent-rgb)) / 0.26), rgb(var(--hue, var(--accent-rgb)) / 0.08));
+  color: rgb(var(--hue, var(--accent-rgb)));
+}
+:root:not([data-mode="light"]) .icon-tile {
+  /* lift the icon a touch on dark panels so deep hues stay bright */
+  color: color-mix(in srgb, rgb(var(--hue, var(--accent-rgb))) 78%, white);
+}
+
+/*
+ * Stat tile: a panel with one hue. A soft wash of that hue in the top-right corner and a 2px rule
+ * along the top edge carry the color; the number stays in text ink.
+ */
+.stat-tile {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.stat-tile::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -60px;
+  top: -70px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--hue, var(--accent-rgb)) / 0.28), transparent);
+}
+.stat-tile::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 0;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, transparent, rgb(var(--hue, var(--accent-rgb)) / 0.9), transparent);
+}
+
+/* The segmented pipeline bar: one whole split into parts, 2px gaps, fully rounded ends */
+.seg-bar {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+}
+.seg-bar > span {
+  min-width: 6px;
+  border-radius: 999px;
+  background: rgb(var(--hue));
+  transition: filter 160ms ease;
+}
+.seg-bar > span:hover {
+  filter: brightness(1.15);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgb(var(--hue));
+  flex: none;
+}
+
+/* The operator card's header band: the nebula behind the badge */
+.card-hero {
+  position: relative;
+  height: 108px;
+  margin: -1px -1px 0;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background:
+    radial-gradient(60% 140% at 50% 120%, var(--glow-core-2) 0%, var(--glow-1) 30%, var(--glow-3) 60%, transparent 85%),
+    radial-gradient(40% 90% at 90% 0%, rgb(var(--nebula-pink-rgb) / 0.35), transparent 70%),
+    linear-gradient(180deg, var(--glow-4), transparent);
+  overflow: hidden;
+}
+:root[data-mode="light"] .card-hero {
+  background:
+    radial-gradient(60% 140% at 50% 120%, var(--glow-core) 0%, var(--glow-2) 35%, var(--glow-3) 65%, transparent 90%),
+    linear-gradient(180deg, var(--glow-4), transparent);
+}
+
+/*
+ * The banner: the site's nebula (footer light) inside a panel, with the emblem turning on the
+ * right where the reference shows its spheres. Text sits on the dark left half.
+ */
+.desk-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background:
+    radial-gradient(70% 120% at 78% 110%, var(--glow-1) 0%, var(--glow-2) 30%, var(--glow-3) 55%, transparent 80%),
+    radial-gradient(40% 70% at 95% 0%, rgb(var(--nebula-pink-rgb) / 0.35), transparent 70%),
+    linear-gradient(120deg, var(--color-ink-2) 30%, var(--glow-4));
+  border: 1px solid rgb(var(--highlight-rgb) / 0.25);
+}
+.desk-banner::after {
+  /* keeps the copy readable over the brightest part */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(12 11 12 / 0.55), transparent 65%);
+}
+:root[data-mode="light"] .desk-banner {
+  background:
+    radial-gradient(70% 120% at 78% 110%, var(--glow-1) 0%, var(--glow-2) 30%, var(--glow-3) 55%, transparent 80%),
+    linear-gradient(120deg, #fbfaff 35%, var(--glow-4));
+}
+:root[data-mode="light"] .desk-banner::after {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.55), transparent 65%);
+}
+}

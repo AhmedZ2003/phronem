@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+# Operator desk data: expert records and operator accounts (src/lib/desk/store.ts)
+.data/
+.DS_Store
+npm-debug.log*
+pnpm-debug.log*
